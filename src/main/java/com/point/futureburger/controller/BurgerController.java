@@ -1,21 +1,25 @@
 package com.point.futureburger.controller;
 
 import com.point.futureburger.model.*;
-import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 @Controller
 @RequestMapping("/burger")
-@AllArgsConstructor
 public class BurgerController {
 
-    private List<UUID> certifiedOriginalFood;
+    private List<UUID> certifiedOriginalFood  = Collections.synchronizedList(new ArrayList<>());
 
     @GetMapping("/bread")
     public ResponseEntity<Bread> getBread() throws InterruptedException {
@@ -25,8 +29,9 @@ public class BurgerController {
         return ResponseEntity.ok(bread);
     }
 
-    @PutMapping("/bread")
+    @PostMapping("/bread")
     public ResponseEntity cutBread(@RequestBody Bread toCut) throws InterruptedException {
+
         if (!certifiedOriginalFood.contains(toCut.getId())) {
             return ResponseEntity.notFound().build();
         }
@@ -55,7 +60,7 @@ public class BurgerController {
         return ResponseEntity.ok(bacon);
     }
 
-    @PutMapping("/bacon")
+    @PostMapping("/bacon")
     public ResponseEntity cookBacon(@RequestBody Bacon toCook) throws InterruptedException {
         if (!certifiedOriginalFood.contains(toCook.getId())) {
             return ResponseEntity.notFound().build();
@@ -92,7 +97,7 @@ public class BurgerController {
         return ResponseEntity.ok(steak);
     }
 
-    @PutMapping("/steak")
+    @PostMapping("/steak")
     public ResponseEntity cookSteak(@RequestBody Steak toCook) throws InterruptedException {
         if (!certifiedOriginalFood.contains(toCook.getId())) {
             return ResponseEntity.notFound().build();
@@ -122,6 +127,7 @@ public class BurgerController {
 
         if (BaconState.COOKED.equals(toBuild.getBacon().getState()) && BreadState.CUT.equals(toBuild.getBread().getState()) && SteakState.COOKED.equals(toBuild.getSteak().getState())) {
             Thread.sleep(5000);
+            toBuild.setRelease(LocalDateTime.now());
             return ResponseEntity.ok(toBuild);
         }
         return ResponseEntity.badRequest().body("Ingredients are not ready");
